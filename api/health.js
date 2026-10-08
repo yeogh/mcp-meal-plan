@@ -8,6 +8,7 @@
 
 import { GoogleGenAI } from '@google/genai';
 import { fetchWithTimeout, sanitizeErrorMessage, getGeminiModel } from '../lib/api-client.js';
+import { checkNutriBalanceMcpHealth } from '../MCP/nutribalance-client.js';
 
 export default async function handler(req, res) {
   // Ensure res has standard helper methods if running in pure Node http
@@ -25,7 +26,10 @@ export default async function handler(req, res) {
     };
   }
 
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+
   const configuredModel = getGeminiModel();
+  const nutribalanceHealth = await checkNutriBalanceMcpHealth();
 
   const results = {
     status: 'unhealthy',
@@ -46,6 +50,7 @@ export default async function handler(req, res) {
         error: null,
         model: configuredModel,
       },
+      nutribalance: nutribalanceHealth,
     },
   };
 

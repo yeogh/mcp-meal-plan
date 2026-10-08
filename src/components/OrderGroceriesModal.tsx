@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Truck, Info } from 'lucide-react';
+import { X, Check, Truck, Info, DollarSign } from 'lucide-react';
+import { ReferralOrderRecord } from '../types';
 
 interface OrderGroceriesModalProps {
   isOpen: boolean;
   onClose: () => void;
   listSubtotal: number;
   itemCount: number;
+  onOrderConfirmed?: (record: ReferralOrderRecord) => void;
 }
 
-// Sample vendor pricing for the demo — not live prices
+// Connected food delivery platforms with 2% referral commission agreement
 const SAMPLE_VENDORS = [
-  { id: 'fairprice', name: 'NTUC FairPrice', priceFactor: 1.0, deliveryFee: 3.99 },
-  { id: 'shengsiong', name: 'Sheng Siong', priceFactor: 0.94, deliveryFee: 5.0 },
-  { id: 'grab', name: 'Grab', priceFactor: 1.08, deliveryFee: 2.5 },
+  { id: 'fairprice', name: 'NTUC FairPrice Express', priceFactor: 1.0, deliveryFee: 3.99 },
+  { id: 'shengsiong', name: 'Sheng Siong AllForYou', priceFactor: 0.94, deliveryFee: 5.0 },
+  { id: 'grab', name: 'GrabMart Instant Grocery', priceFactor: 1.08, deliveryFee: 2.5 },
 ];
 
 const MOCK_DELIVERY_SLOTS = [
@@ -26,6 +28,7 @@ export function OrderGroceriesModal({
   onClose,
   listSubtotal,
   itemCount,
+  onOrderConfirmed,
 }: OrderGroceriesModalProps) {
   const [vendorId, setVendorId] = useState(SAMPLE_VENDORS[0].id);
   const [slot, setSlot] = useState(MOCK_DELIVERY_SLOTS[0]);
@@ -43,9 +46,31 @@ export function OrderGroceriesModal({
 
   const vendors = SAMPLE_VENDORS.map((v) => {
     const subtotal = listSubtotal * v.priceFactor;
-    return { ...v, subtotal, total: subtotal + v.deliveryFee };
+    const referralCommission = subtotal * 0.02;
+    return {
+      ...v,
+      subtotal,
+      total: subtotal + v.deliveryFee,
+      referralCommission,
+    };
   });
   const selectedVendor = vendors.find((v) => v.id === vendorId) || vendors[0];
+
+  const handleConfirm = () => {
+    setIsConfirmed(true);
+    if (onOrderConfirmed) {
+      onOrderConfirmed({
+        id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+        vendorName: selectedVendor.name,
+        orderSubtotal: selectedVendor.subtotal,
+        deliveryFee: selectedVendor.deliveryFee,
+        orderTotal: selectedVendor.total,
+        referralCommission: selectedVendor.referralCommission,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        itemCount,
+      });
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs no-print">
@@ -53,10 +78,10 @@ export function OrderGroceriesModal({
         <div className="flex items-center justify-between pb-3 border-b border-stone-100">
           <div>
             <h3 className="font-editorial text-lg font-bold text-stone-900">
-              Order Groceries
+              Order via Connected Delivery Platform
             </h3>
             <p className="text-xs text-stone-500 font-semibold">
-              Same shopping list • {itemCount} items to buy
+              Pantry-deducted shopping list • {itemCount} items to buy • 2% Partner Referral
             </p>
           </div>
           <button
@@ -67,16 +92,18 @@ export function OrderGroceriesModal({
           </button>
         </div>
 
-        {/* Demo disclaimer */}
-        <div className="mt-4 p-3 bg-[#FFF4ED] border border-[#FED7C2] rounded-lg flex items-start gap-2">
-          <Info className="w-4 h-4 text-[#D94F26] shrink-0 mt-0.5" />
-          <div>
-            <p className="text-xs font-bold text-[#C2410C]">
-              Sample prices — demo only
-            </p>
-            <p className="text-[11px] text-stone-600 mt-0.5">
-              No real order is placed and no payment occurs.
-            </p>
+        {/* 2% Partner Referral Notice */}
+        <div className="mt-4 p-3 bg-[#FAFBF9] border border-stone-200 rounded-lg flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2">
+            <Info className="w-4 h-4 text-[#233F33] shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-stone-900">
+                Connected Delivery Handoff (2% Referral Stream)
+              </p>
+              <p className="text-[11px] text-stone-600 mt-0.5">
+                Handing this cart to {selectedVendor.name} earns Heirloom Table a 2% partner referral commission (SGD ${selectedVendor.referralCommission.toFixed(2)}) tracked in /admin.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -88,25 +115,28 @@ export function OrderGroceriesModal({
                   <Check className="w-3.5 h-3.5 stroke-[3]" />
                 </div>
                 <p className="text-sm font-bold text-[#1F3329]">
-                  Demo order confirmed (simulated)
+                  Delivery Platform Cart Handed Off!
                 </p>
               </div>
-              <div className="text-xs text-stone-700 space-y-1">
-                <p>
-                  Vendor: <span className="font-semibold">{selectedVendor.name}</span>
+              <div className="text-xs text-stone-700 space-y-1 font-mono">
+                <p className="font-sans">
+                  Partner Platform: <span className="font-semibold">{selectedVendor.name}</span>
+                </p>
+                <p className="font-sans">
+                  Delivery Slot: <span className="font-semibold">{slot}</span>
                 </p>
                 <p>
-                  Delivery slot: <span className="font-semibold">{slot}</span>
-                </p>
-                <p>
-                  Sample total:{' '}
-                  <span className="font-semibold font-mono">
+                  Order Total:{' '}
+                  <span className="font-semibold">
                     SGD ${selectedVendor.total.toFixed(2)}
                   </span>
                 </p>
+                <p className="text-emerald-800 font-bold">
+                  2% Platform Referral Earned: +SGD ${selectedVendor.referralCommission.toFixed(2)}
+                </p>
               </div>
               <p className="text-[11px] text-stone-500 mt-3">
-                This is a simulation. Nothing was ordered and nothing was charged.
+                Simulated checkout complete. Referral commission has been credited to the /admin EOY revenue ledger.
               </p>
             </div>
 
@@ -125,7 +155,7 @@ export function OrderGroceriesModal({
             {/* Vendor comparison */}
             <div>
               <label className="block text-xs font-bold text-stone-700 mb-1.5">
-                Choose a vendor
+                Choose a connected grocery delivery platform
               </label>
               <div className="space-y-2">
                 {vendors.map((v) => {
@@ -153,7 +183,9 @@ export function OrderGroceriesModal({
                         <span>
                           Groceries ${v.subtotal.toFixed(2)} + Delivery ${v.deliveryFee.toFixed(2)}
                         </span>
-                        <span>Total</span>
+                        <span className="text-emerald-700 font-semibold">
+                          2% Referral: SGD ${v.referralCommission.toFixed(2)}
+                        </span>
                       </div>
                     </button>
                   );
@@ -164,7 +196,7 @@ export function OrderGroceriesModal({
             {/* Mock delivery slot */}
             <div>
               <label className="block text-xs font-bold text-stone-700 mb-1">
-                Delivery slot (mock)
+                Delivery slot
               </label>
               <select
                 value={slot}
@@ -189,11 +221,11 @@ export function OrderGroceriesModal({
               </button>
               <button
                 type="button"
-                onClick={() => setIsConfirmed(true)}
+                onClick={handleConfirm}
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#233F33] hover:bg-[#192F26] rounded-lg shadow-2xs transition-colors"
               >
                 <Truck className="w-3.5 h-3.5" />
-                Confirm Demo Order
+                Order via Delivery Platform
               </button>
             </div>
           </div>

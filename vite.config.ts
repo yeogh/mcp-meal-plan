@@ -23,6 +23,8 @@ function apiServerPlugin(): Plugin {
               handlerModule = await import('./api/recipes.js');
             } else if (pathname === '/api/meal-plan' || pathname === '/api/meal-plan.js') {
               handlerModule = await import('./api/meal-plan.js');
+            } else if (pathname === '/api/nutribalance' || pathname === '/api/nutribalance.js') {
+              handlerModule = await import('./api/nutribalance.js');
             }
 
             if (handlerModule && handlerModule.default) {
@@ -51,6 +53,9 @@ export default defineConfig(() => {
       },
     },
     server: {
+      port: 3000,
+      host: '0.0.0.0',
+      allowedHosts: true,
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',

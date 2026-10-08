@@ -1,7 +1,14 @@
 import React, { useState, useMemo } from 'react';
-import { CategoryGroup, ShoppingItem, HouseholdPreferences } from '../types';
+import {
+  CategoryGroup,
+  ShoppingItem,
+  HouseholdPreferences,
+  SubscriptionTier,
+  ReferralOrderRecord,
+} from '../types';
 import { ImgWithFallback } from './ImgWithFallback';
 import { OrderGroceriesModal } from './OrderGroceriesModal';
+import { ContextualAdBanner } from './ContextualAdBanner';
 import {
   Copy,
   Printer,
@@ -27,6 +34,7 @@ import {
 interface ShoppingListScreenProps {
   categories: CategoryGroup[];
   preferences: HouseholdPreferences;
+  subscriptionTier?: SubscriptionTier;
   onToggleItem: (itemId: string) => void;
   onEditQty: (item: ShoppingItem) => void;
   onAddItem: () => void;
@@ -34,11 +42,14 @@ interface ShoppingListScreenProps {
   onExportWhatsApp: () => void;
   onPrintList: () => void;
   onTogglePantryMath: () => void;
+  onOrderConfirmed?: (record: ReferralOrderRecord) => void;
+  onUpgradeClick?: () => void;
 }
 
 export function ShoppingListScreen({
   categories,
   preferences,
+  subscriptionTier = 'family',
   onToggleItem,
   onEditQty,
   onAddItem,
@@ -46,6 +57,8 @@ export function ShoppingListScreen({
   onExportWhatsApp,
   onPrintList,
   onTogglePantryMath,
+  onOrderConfirmed,
+  onUpgradeClick,
 }: ShoppingListScreenProps) {
   const [filterMode, setFilterMode] = useState<'all' | 'unchecked' | 'checked'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -143,6 +156,12 @@ export function ShoppingListScreen({
 
   return (
     <div className="pb-28 pt-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <ContextualAdBanner
+        tier={subscriptionTier}
+        context="shopping"
+        onUpgradeClick={() => onUpgradeClick && onUpgradeClick()}
+      />
+
       {/* Top Banner Tag */}
       <div className="mb-2">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EEF4F0] text-[#244E3B] rounded-full text-xs font-semibold tracking-tight border border-[#D5E5DB]">
@@ -179,10 +198,10 @@ export function ShoppingListScreen({
           </button>
           <button
             onClick={() => setIsOrderOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 shadow-2xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#233F33] bg-[#EEF4F0] border border-[#CDE5D6] rounded-lg hover:bg-[#DCE9E1] shadow-2xs transition-colors"
           >
-            <Truck className="w-3.5 h-3.5 text-stone-500" />
-            Order Groceries
+            <Truck className="w-3.5 h-3.5 text-[#233F33]" />
+            Order via Delivery Platform (2% Referral)
           </button>
           <button
             onClick={onAddItem}
@@ -599,6 +618,7 @@ export function ShoppingListScreen({
         onClose={() => setIsOrderOpen(false)}
         listSubtotal={totalEstimatedCost}
         itemCount={allItems.filter((i) => i.price && !i.pantryDeducted).length}
+        onOrderConfirmed={onOrderConfirmed}
       />
     </div>
   );

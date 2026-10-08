@@ -1,4 +1,23 @@
-export type TabType = 'menu' | 'shopping' | 'preferences';
+export type TabType = 'menu' | 'shopping' | 'cooking' | 'agent-chef' | 'preferences' | 'subscription' | 'admin';
+
+export type SubscriptionTier = 'free' | 'individual' | 'family';
+
+export type DietaryMode = 'standard' | 'vegetarian' | 'vegan' | 'keto' | 'high-protein';
+
+export interface MacroProfile {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface MealFeedback {
+  id: string;
+  memberName: string;
+  comment: string;
+  timestamp: string;
+  vote: 'up' | 'down';
+}
 
 export interface ShoppingItem {
   id: string;
@@ -77,11 +96,56 @@ export interface MenuItem {
   description: string;
   prepTimeMinutes: number;
   cuisine: string;
+  dietaryMode?: DietaryMode;
   image: string;
   tags: string[];
   servings: number;
   isLocked?: boolean;
+  macros?: MacroProfile;
+  eatingScore?: number;
+  nutrientHighlight?: string;
+  votes?: number;
+  votedBy?: string[];
+  feedback?: MealFeedback[];
+  cookingSteps?: string[];
   ingredients: { name: string; qty: string; status: 'in-pantry' | 'buy' }[];
+}
+
+export interface NutriBalanceDeficiency {
+  nutrient: string;
+  status: string;
+  recommendation: string;
+  foodFix: string;
+}
+
+export interface NutriBalanceProfile {
+  provider: string;
+  endpoint: string;
+  origin: string;
+  dietaryMode: DietaryMode;
+  modeLabel: string;
+  dailyEatingScore: number;
+  memberProfiles: {
+    id: string;
+    name: string;
+    appetite: string;
+    portionMultiplier: number;
+    tdee: number;
+    dinnerTargetCalories: number;
+    dailyMacros: MacroProfile;
+  }[];
+  deficiencyGuidance: NutriBalanceDeficiency[];
+}
+
+export interface ReferralOrderRecord {
+  id: string;
+  vendorName: string;
+  orderSubtotal: number;
+  deliveryFee: number;
+  orderTotal: number;
+  referralCommission: number;
+  timestamp: string;
+  itemCount: number;
 }
 
 export interface ApiProviderHealth {
@@ -92,6 +156,7 @@ export interface ApiProviderHealth {
   generationVerified?: boolean;
   message?: string | null;
   model?: string;
+  endpoint?: string;
   error: string | null;
 }
 
@@ -101,6 +166,7 @@ export interface ApiHealthResponse {
   providers: {
     spoonacular: ApiProviderHealth;
     gemini: ApiProviderHealth;
+    nutribalance?: ApiProviderHealth;
   };
 }
 

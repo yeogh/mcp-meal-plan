@@ -175,6 +175,33 @@ export function ApiHealthModal({
                 : health?.providers.gemini.error || 'Click "Check APIs" below to verify status.'}
             </p>
           </div>
+
+          {/* NutriBalance MCP */}
+          <div className="p-4 bg-white border border-stone-200 rounded-xl shadow-2xs">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Server className="w-4 h-4 text-stone-600" />
+                <span className="text-sm font-bold text-stone-800">
+                  NutriBalance MCP (mcp.smithery.ai/ghyeogh)
+                </span>
+              </div>
+              {health?.providers.nutribalance ? (
+                renderStatusBadge(
+                  health.providers.nutribalance.status,
+                  health.providers.nutribalance.responseTimeMs
+                )
+              ) : (
+                <span className="text-xs text-stone-400">Not checked</span>
+              )}
+            </div>
+            <p className="text-xs text-stone-500">
+              {health?.providers.nutribalance?.status === 'ok'
+                ? 'Connected to NutriBalance MCP for TDEE, macros, dietary modes & eating score.'
+                : health?.providers.nutribalance?.status === 'not_configured'
+                ? 'NUTRIBALANCE_MCP_KEY is not set. App uses deterministic server-side NutriBalance MCP engine.'
+                : health?.providers.nutribalance?.error || 'Click "Check APIs" below to verify status.'}
+            </p>
+          </div>
         </div>
 
         {/* Overall Status Banner */}

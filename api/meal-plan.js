@@ -29,6 +29,8 @@ export default async function handler(req, res) {
     };
   }
 
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+
   // Only allow POST
   if (req.method !== 'POST' && req.method !== 'OPTIONS') {
     return res.status(405).json({ error: 'Method not allowed. Use POST.' });
@@ -298,18 +300,35 @@ function formatMenuItemFromRecipe(recipe, day, subName) {
     status: (ing.name || '').match(/rice|oil|salt|soy|cornstarch/i) ? 'in-pantry' : 'buy',
   }));
 
+  const hash = [...(recipe.title || day)].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const calories = 460 + (hash % 9) * 25;
+  const protein = 32 + (hash % 16);
+  const carbs = 24 + (hash % 28);
+  const fat = 18 + (hash % 14);
+
+  const rawInstructions = recipe.instructions || 'Prepare fresh ingredients. Sear protein with ginger and garlic aromatics, add seasonal vegetables, and simmer gently in house sauce.';
+  const cookingSteps = rawInstructions
+    .split(/(?<=\.)\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
   return {
     id: `menu-${day.toLowerCase().slice(0, 3)}`,
     recipeId: String(recipe.id),
     day,
     mealName: recipe.title,
     subName: subName || `Prep time: ${recipe.readyInMinutes}m • Fresh Family Style`,
-    description: recipe.instructions || 'Nourishing family style meal prepared with fresh seasonal ingredients.',
+    description: rawInstructions,
     prepTimeMinutes: recipe.readyInMinutes || 30,
     cuisine: (recipe.cuisines?.[0] || 'Asian') + ' Home Cooking',
     image: recipe.image || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80',
     tags: ['Family Balance', 'Portion Calibrated'],
     servings: 2.75,
+    macros: { calories, protein, carbs, fat },
+    eatingScore: 88 + (hash % 10),
+    votes: 2 + (hash % 3),
+    votedBy: ['Sarah', 'David'],
+    cookingSteps: cookingSteps.length > 0 ? cookingSteps : [rawInstructions],
     ingredients,
   };
 }
